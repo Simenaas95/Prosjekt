@@ -3,6 +3,9 @@ import express from 'express';
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Middleware for å tjene statiske filer
+app.use(express.static('public'));
+
 // Lagring av kortstokker
 const decks = {};
 
@@ -74,6 +77,12 @@ app.get('/temp/deck/:deck_id/card', (req, res) => {
     const drawnCard = deck.splice(randomIndex, 1)[0];
 
     res.json({ card: drawnCard });
+});
+
+// Global feilhåndtering
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something went wrong!' });
 });
 
 // Start server
