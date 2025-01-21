@@ -1,11 +1,11 @@
 import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
 const port = 3000;
 
 // In-memory storage for decks
 const decks = {};
+let deckCounter = 1; // Simple counter for generating unique IDs
 
 // Function to create a standard 52-card deck
 function createDeck() {
@@ -20,9 +20,14 @@ function createDeck() {
     return deck;
 }
 
+// Generate a simple unique ID based on a counter
+function generateDeckId() {
+    return `deck-${deckCounter++}`;
+}
+
 // POST /temp/deck - Create a new deck and return its ID
 app.post('/temp/deck', (req, res) => {
-    const deckId = uuidv4();
+    const deckId = generateDeckId();
     decks[deckId] = createDeck();
     res.json({ deck_id: deckId });
 });
