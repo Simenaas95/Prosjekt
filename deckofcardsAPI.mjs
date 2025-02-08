@@ -1,7 +1,31 @@
 import express from 'express';
+import dotenv from 'dotenv';
+import session from 'express-session';
+import Redis from 'ioredis';
+import { default as connectRedis } from 'connect-redis'; // Bruk denne importen
+import cors from 'cors'; // Hvis du har behov for cors, ellers kan du fjerne den
+
+// Last miljøvariabler fra .env
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Koble til Redis
+const redisClient = new Redis({
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT
+});
+
+// Sett opp session-middleware for å bruke Redis til sesjoner
+const RedisStore = connectRedis(session);
+app.use(session({
+    store: new RedisStore({ client: redisClient }),
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false } // Sett til true hvis du bruker HTTPS
+}));
 
 // Middleware for å tjene statiske filer
 app.use(express.static('public'));
@@ -77,6 +101,16 @@ app.get('/temp/deck/:deck_id/card', (req, res) => {
     const drawnCard = deck.splice(randomIndex, 1)[0];
 
     res.json({ card: drawnCard });
+});
+
+// **Legg til denne ruten her** for å teste sesjoner
+app.get('/session', (req, res) => {
+    if (!req.session.views) {
+        req.session.views = 1;
+    } else {
+        req.session.views++;
+    }
+    res.json({ message: `Du har besøkt denne siden ${req.session.views} ganger.` });
 });
 
 // Global feilhåndtering
