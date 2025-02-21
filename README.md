@@ -2,7 +2,7 @@
 
 A REST API for managing spinning wheel games.
 
-Production URL: https://your-app.onrender.com
+Production URL: https://spin-the-wheel-2fg3.onrender.com
 
 ## API Documentation
 - GET /api/wheels - List all wheels

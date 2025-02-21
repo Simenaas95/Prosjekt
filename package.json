@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "start": "node server.mjs",
+    "start": "node SpinAPI.mjs",
     "local": "node --env-file=.env init/init.mjs"
   },
   "dependencies": {
