@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin the Wheel</title>
+    <link rel="manifest" href="manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker registrert:', reg))
+                .catch(err => console.log('Service Worker feilet:', err));
+        }
+    </script>
+</head>
+<body>
+    <h1>Spin the Wheel</h1>
+    <button onclick="spinWheel()">Spinn!</button>
+    <p id="result"></p>
+
+    <script>
+        async function spinWheel() {
+            const response = await fetch('/api/wheels');
+            const wheels = await response.json();
+            if (wheels.length > 0) {
+                const spinResponse = await fetch(`/api/wheels/${wheels[0].id}/spin`, { method: 'POST' });
+                const spinData = await spinResponse.json();
+                document.getElementById('result').innerText = `Resultat: ${spinData.result}`;
+            }
+        }
+    </script>
+</body>
+</html>

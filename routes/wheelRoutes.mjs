@@ -1,8 +1,7 @@
-// routes/wheelRoutes.mjs
+
 import express from 'express';
 const router = express.Router();
 
-// Datastruktur for hjul
 class Wheel {
     constructor(name, options, settings = {}) {
         this.id = Date.now().toString();
@@ -32,10 +31,10 @@ class Wheel {
     }
 }
 
-// In-memory database
+
 let wheels = new Map();
 
-// Opprett standard hjul
+
 const defaultWheel = new Wheel(
     'Default Wheel',
     ['Win 100 points', 'Win 200 points', 'Lose 50 points', 'Try Again',
@@ -43,7 +42,6 @@ const defaultWheel = new Wheel(
 );
 wheels.set(defaultWheel.id, defaultWheel);
 
-// CREATE - Opprett nytt hjul
 router.post('/', (req, res) => {
     const { name, options, settings } = req.body;
     
