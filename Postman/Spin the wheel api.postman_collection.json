@@ -1,0 +1,18 @@
+{
+	"info": {
+		"_postman_id": "29f370d6-5017-4a2c-9193-8e4c7cbad694",
+		"name": "Spin the wheel api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40982793"
+	},
+	"item": [
+		{
+			"name": "New Request",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}

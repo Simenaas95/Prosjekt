@@ -114,7 +114,7 @@ router.post('/:id/spin', (req, res) => {
     
     const spinResult = wheel.spin();
     res.json({
-        message: 'Hjulet har blitt snudd!',
+        message: 'Hjulet har blitt spunnet!',
         ...spinResult
     });
 });
