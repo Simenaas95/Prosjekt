@@ -13,24 +13,68 @@
                 .catch(err => console.log('Service Worker feilet:', err));
         }
     </script>
+    <style>
+        .wheel-icon {
+            width: 200px;
+            height: auto;
+            margin: 20px auto;
+            display: block;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(3600deg); }
+        }
+
+        .spinning {
+            animation: spin 3s cubic-bezier(0.2, 0.8, 0.3, 1);
+        }
+    </style>
 </head>
 <body>
     <h1>Spin the Wheel</h1>
-   
     <p id="result"></p>
     <div class="container">
-        <img src="/icon-512.png" alt="Wheel Icon" class="wheel-icon">
-    <button onclick="spinWheel()">Spinn!</button>
+        <img src="/icon-512.png" alt="Wheel Icon" class="wheel-icon" id="wheelImg">
+        <button onclick="spinWheel()">Spinn!</button>
+    </div>
     <script>
         async function spinWheel() {
-            const response = await fetch('/api/wheels');
-            const wheels = await response.json();
-            if (wheels.length > 0) {
-                const spinResponse = await fetch(`/api/wheels/${wheels[0].id}/spin`, { method: 'POST' });
-                const spinData = await spinResponse.json();
-                document.getElementById('result').innerText = `Resultat: ${spinData.result}`;
+            const wheel = document.getElementById('wheelImg');
+            const resultElement = document.getElementById('result');
+            
+            // Clear previous result
+            resultElement.innerText = '';
+            
+            // Remove old animation
+            wheel.classList.remove('spinning');
+            
+            // Force reflow
+            void wheel.offsetWidth;
+            
+            // Add new animation
+            wheel.classList.add('spinning');
+            
+            try {
+                const response = await fetch('/api/wheels');
+                const wheels = await response.json();
+                if (wheels.length > 0) {
+                    const spinResponse = await fetch(`/api/wheels/${wheels[0].id}/spin`, { method: 'POST' });
+                    const spinData = await spinResponse.json();
+                    
+                    setTimeout(() => {
+                        resultElement.innerText = `Resultat: ${spinData.result}`;
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Error:', error);
             }
         }
+
+        // Remove spinning class when animation ends
+        document.getElementById('wheelImg').addEventListener('animationend', function() {
+            this.classList.remove('spinning');
+        });
     </script>
 </body>
 </html>
