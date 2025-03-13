@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS wheels (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    options JSONB NOT NULL,
+    settings JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS spin_history (
+    id SERIAL PRIMARY KEY,
+    wheel_id INTEGER REFERENCES wheels(id),
+    result TEXT NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

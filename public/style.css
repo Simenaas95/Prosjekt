@@ -1,0 +1,120 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f0f0f0;
+}
+
+.container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.wheel-container {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    margin: 20px auto;
+}
+
+.wheel {
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    position: relative;
+    transition: transform 3s cubic-bezier(0.2, 0.8, 0.3, 1);
+    margin: 0 auto;
+}
+
+.wheel-segment {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+    clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 50% 100%);
+}
+
+.wheel-text {
+    position: absolute;
+    left: 75%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(90deg);
+    white-space: nowrap;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+input, button {
+    padding: 8px;
+    margin: 5px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+#prizeList {
+    margin: 10px 0;
+    padding: 0;
+    list-style: none;
+}
+
+#result {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.segment {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center;
+}
+
+.segment-text {
+    position: absolute;
+    left: 50%;
+    width: 50%;
+    text-align: center;
+    transform-origin: 0% 50%;
+    color: white;
+    padding: 0 20px;
+    font-weight: bold;
+}
+
+.pointer {
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 15px solid red;
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none; /* Hide initially */
+}
