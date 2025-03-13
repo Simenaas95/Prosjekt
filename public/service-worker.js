@@ -8,12 +8,17 @@ const urlsToCache = [
     '/icon-512.png'
 ];
 
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => {
-            return cache.addAll(urlsToCache);
-        })
-    );
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open('wheel-cache-v1').then((cache) => {
+      return cache.addAll([
+        '/',
+        '/spin.html',
+        '/style.css',
+        '/images/icon-192.png'
+      ]);
+    })
+  );
 });
 
 self.addEventListener('fetch', event => {

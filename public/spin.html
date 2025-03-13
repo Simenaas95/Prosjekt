@@ -18,7 +18,7 @@
             <input type="text" id="wheelName" placeholder="Wheel Name">
             <input type="text" id="prizeName" placeholder="Prize Name">
             <button onclick="addPrize()">Add Prize</button>
-            <button onclick="createWheel()">Create Wheel</button>
+            <button onclick="createAndSaveWheel()">Create Wheel</button>
             <ul id="prizeList"></ul>
         </div>
 
@@ -29,132 +29,147 @@
         </div>
         
         <div id="result"></div>
-        <button onclick="spinWheel()" id="spinButton">Spin!</button>
+        <button onclick="spinWheel()" id="spinButton">SPIN!</button>
     </div>
 
     <script>
         let currentPrizes = [];
         let currentWheelId = null;
+        let currentRotation = 0; // Track current rotation
 
-        async function addPrize() {
-            const prize = document.getElementById('prizeName').value.trim();
+        function addPrize() {
+            const prizeInput = document.getElementById('prizeName');
+            const prize = prizeInput.value.trim();
+            
             if (prize) {
                 currentPrizes.push(prize);
-                document.getElementById('prizeName').value = '';
-                updatePrizeList();
-                updateWheel();
-                document.querySelector('.pointer').style.display = 'block'; // Show pointer
+                prizeInput.value = '';
+                createWheel(); // Immediately update wheel
             }
         }
 
-        function updatePrizeList() {
-            const list = document.getElementById('prizeList');
-            list.innerHTML = currentPrizes.map(prize => 
-                `<li>${prize}</li>`
-            ).join('');
-        }
+        function createWheel() {
+            const wheelNameInput = document.getElementById('wheelName');
+            const wheelName = wheelNameInput.value.trim();
+            
+            if (!wheelName) {
+                alert('Please enter a wheel name');
+                return;
+            }
 
-        function updateWheel() {
+            // Create wheel UI
             const wheel = document.getElementById('wheel');
             wheel.innerHTML = '';
             
             if (currentPrizes.length === 0) return;
 
-            // Calculate segment size
+            // Calculate angles for segments
             const segmentAngle = 360 / currentPrizes.length;
-            
-            // Create background gradient
-            const gradientStops = currentPrizes.map((prize, index) => {
-                const startAngle = index * segmentAngle;
-                const endAngle = (index + 1) * segmentAngle;
-                const color = `hsl(${index * (360 / currentPrizes.length)}, 70%, 50%)`;
-                return `${color} ${startAngle}deg ${endAngle}deg`;
-            }).join(', ');
-            
-            wheel.style.background = `conic-gradient(${gradientStops})`;
+            let conicGradient = [];
+            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8AC249'];
 
-            // Add text segments
             currentPrizes.forEach((prize, index) => {
-                const segment = document.createElement('div');
-                segment.className = 'segment';
+                const startAngle = index * segmentAngle;
+                const endAngle = startAngle + segmentAngle;
+                const color = colors[index % colors.length];
                 
+                conicGradient.push(`${color} ${startAngle}deg ${endAngle}deg`);
+                
+                // Create text label
                 const text = document.createElement('div');
-                text.className = 'segment-text';
+                text.className = 'wheel-text';
                 text.textContent = prize;
-                text.style.transform = `rotate(${index * segmentAngle + segmentAngle/2}deg)`;
                 
-                segment.appendChild(text);
-                wheel.appendChild(segment);
+                // Position text in middle of segment
+                const rotationAngle = startAngle + (segmentAngle / 2);
+                text.style.transform = `rotate(${rotationAngle}deg) translate(0, -100px)`;
+                
+                wheel.appendChild(text);
             });
+
+            wheel.style.background = `conic-gradient(${conicGradient.join(', ')})`;
         }
 
-        async function createWheel() {
-            const name = document.getElementById('wheelName').value;
-            if (name && currentPrizes.length > 0) {
-                const wheelData = {
-                    name: name,
-                    options: currentPrizes,
-                    settings: {
-                        defaultPrize: 'Try Again',
-                        minSpinTime: 3,
-                        maxSpinTime: 8,
-                        isActive: true
-                    }
-                };
+        function createAndSaveWheel() {
+            const wheelName = document.getElementById('wheelName').value.trim();
+            if (!wheelName) {
+                alert('Please enter a wheel name');
+                return;
+            }
+            createWheel();
+            saveWheel(wheelName, currentPrizes);
+        }
 
-                try {
-                    const response = await fetch('/api/wheels', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(wheelData)
-                    });
+        async function saveWheel(name, options) {
+            try {
+                const response = await fetch('/api/wheels', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        options: options,
+                        settings: {
+                            defaultPrize: 'Try Again',
+                            minSpinTime: 3,
+                            maxSpinTime: 8,
+                            isActive: true
+                        }
+                    })
+                });
 
-                    if (!response.ok) {
-                        throw new Error('Failed to create wheel');
-                    }
-
-                    const data = await response.json();
-                    currentWheelId = data.id;
-                    alert('Wheel created successfully!');
-                } catch (error) {
-                    console.error('Error creating wheel:', error);
+                if (!response.ok) {
+                    throw new Error('Failed to save wheel');
                 }
-            } else {
-                alert('Please enter a wheel name and add at least one prize.');
+
+                const data = await response.json();
+                currentWheelId = data.id;
+                alert('Wheel saved successfully!');
+            } catch (error) {
+                console.error('Error saving wheel:', error);
+                alert('Failed to save wheel');
             }
         }
 
-        async function spinWheel() {
+        function spinWheel() {
+            if (currentPrizes.length < 2) return;
+            
             const wheel = document.getElementById('wheel');
-            const resultElement = document.getElementById('result');
             const spinButton = document.getElementById('spinButton');
             
-            // Disable the spin button
+            // Disable button during spin
             spinButton.disabled = true;
             
-            try {
-                const segmentAngle = 360 / currentPrizes.length;
-                const randomSegment = Math.floor(Math.random() * currentPrizes.length);
-                const randomExtraRotation = Math.random() * segmentAngle; // Random extra rotation within one segment
-                const finalRotation = -360 * (5 + Math.random() * 2) - randomSegment * segmentAngle - randomExtraRotation; // 5-7 full rotations counterclockwise
-                
-                wheel.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
-                wheel.style.transform = `rotate(${finalRotation}deg)`;
-                
-                setTimeout(() => {
-                    const normalizedRotation = (finalRotation % 360 + 360) % 360; // Normalize rotation to 0-360 degrees
-                    const actualSegment = Math.floor(normalizedRotation / segmentAngle);
-                    resultElement.textContent = `Result: ${currentPrizes[actualSegment]}`;
-                    // Re-enable the spin button
-                    spinButton.disabled = false;
-                }, 3000);
-            } catch (error) {
-                console.error('Error spinning wheel:', error);
-                // Re-enable the spin button in case of error
+            // Calculate rotation (at least 5 full spins + random)
+            const additionalRotation = 1800 + Math.floor(Math.random() * 360);
+            const newRotation = currentRotation + additionalRotation;
+            
+            // Apply rotation with easing
+            wheel.style.transform = `rotate(${newRotation}deg)`;
+            
+            // Re-enable button and show result after animation
+            setTimeout(() => {
                 spinButton.disabled = false;
-            }
+                currentRotation = newRotation;
+                const normalizedRotation = newRotation % 360;
+                const sectionAngle = 360 / currentPrizes.length;
+                const sectionIndex = Math.floor((360 - normalizedRotation) / sectionAngle) % currentPrizes.length;
+                
+                const result = document.getElementById('result');
+                result.textContent = `You won: ${currentPrizes[sectionIndex]}!`;
+                result.classList.add('show');
+                
+                // Remove show class after animation
+                setTimeout(() => {
+                    result.classList.remove('show');
+                }, 3000);
+            }, 5000);
+        }
+
+        function getRandomColor() {
+            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8AC249', '#EA526F'];
+            return colors[Math.floor(Math.random() * colors.length)];
         }
 
         // Service Worker Registration
