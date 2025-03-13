@@ -39,9 +39,13 @@ class Wheel {
 
 router.post('/', async (req, res) => {
     try {
-        const { name, options, settings } = req.body;
+        const { name, options, settings, prize } = req.body;
 
-       
+        // Legg til prize i options
+        if (prize) {
+            options.push(prize);
+        }
+
         const wheelSettings = settings || {
             defaultPrize: 'Try Again',
             minSpinTime: 3,
@@ -62,30 +66,36 @@ router.post('/', async (req, res) => {
 });
 
 
-
 router.get('/', async (req, res) => {
     try {
-        // Add detailed logging
-        console.log('Attempting to fetch wheels...');
-        
-        const result = await pool.query('SELECT * FROM wheels ORDER BY id DESC');
-        console.log('Query result:', result.rows); // Log the results
+        const result = await pool.query('SELECT id, name, options, settings FROM wheels ORDER BY id DESC');
         
         const wheels = result.rows.map(row => {
-            console.log('Processing row:', row); // Log each row
-            return Wheel.fromDB(row);
+            let options, settings;
+            try {
+                options = JSON.parse(row.options);
+            } catch (error) {
+                console.error('Invalid JSON in options:', row.options);
+                options = [];
+            }
+            try {
+                settings = JSON.parse(row.settings);
+            } catch (error) {
+                console.error('Invalid JSON in settings:', row.settings);
+                settings = {};
+            }
+            return {
+                id: row.id,
+                name: row.name,
+                options: options,
+                settings: settings
+            };
         });
-        
-        res.json(wheels);
+
+        res.status(200).json(wheels);
     } catch (error) {
-        // More detailed error logging
-        console.error('Full error details:', error);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-        res.status(500).json({ 
-            error: 'Database error',
-            details: error.message // Add error details to response
-        });
+        console.error('Feil ved henting av hjul:', error);
+        res.status(500).json({ error: 'Database error' });
     }
 });
 

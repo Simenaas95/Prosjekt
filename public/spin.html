@@ -38,57 +38,50 @@
         let currentRotation = 0; // Track current rotation
 
         function addPrize() {
-            const prizeInput = document.getElementById('prizeName');
-            const prize = prizeInput.value.trim();
-            
-            if (prize) {
-                currentPrizes.push(prize);
-                prizeInput.value = '';
-                createWheel(); // Immediately update wheel
-            }
-        }
+    const prizeInput = document.getElementById('prizeName');
+    const prize = prizeInput.value.trim();
+
+    if (prize) {
+        currentPrizes.push(prize);
+        prizeInput.value = '';
+        createWheel(); // Oppdater hjulet umiddelbart
+    }
+}
 
         function createWheel() {
-            const wheelNameInput = document.getElementById('wheelName');
-            const wheelName = wheelNameInput.value.trim();
-            
-            if (!wheelName) {
-                alert('Please enter a wheel name');
-                return;
-            }
+    // Ikke lenger nødvendig å sjekke wheelName før vi oppretter hjulet
+    const wheel = document.getElementById('wheel');
+    wheel.innerHTML = '';
 
-            // Create wheel UI
-            const wheel = document.getElementById('wheel');
-            wheel.innerHTML = '';
-            
-            if (currentPrizes.length === 0) return;
+    if (currentPrizes.length === 0) return;
 
-            // Calculate angles for segments
-            const segmentAngle = 360 / currentPrizes.length;
-            let conicGradient = [];
-            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8AC249'];
+    // Beregn segmentvinkler
+    const segmentAngle = 360 / currentPrizes.length;
+    let conicGradient = [];
+    const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8AC249'];
 
-            currentPrizes.forEach((prize, index) => {
-                const startAngle = index * segmentAngle;
-                const endAngle = startAngle + segmentAngle;
-                const color = colors[index % colors.length];
-                
-                conicGradient.push(`${color} ${startAngle}deg ${endAngle}deg`);
-                
-                // Create text label
-                const text = document.createElement('div');
-                text.className = 'wheel-text';
-                text.textContent = prize;
-                
-                // Position text in middle of segment
-                const rotationAngle = startAngle + (segmentAngle / 2);
-                text.style.transform = `rotate(${rotationAngle}deg) translate(0, -100px)`;
-                
-                wheel.appendChild(text);
-            });
+    currentPrizes.forEach((prize, index) => {
+        const startAngle = index * segmentAngle;
+        const endAngle = startAngle + segmentAngle;
+        const color = colors[index % colors.length];
 
-            wheel.style.background = `conic-gradient(${conicGradient.join(', ')})`;
-        }
+        conicGradient.push(`${color} ${startAngle}deg ${endAngle}deg`);
+
+        // Opprett tekstetikett
+        const text = document.createElement('div');
+        text.className = 'wheel-text';
+        text.textContent = prize;
+
+        // Plasser teksten i midten av segmentet
+        const rotationAngle = startAngle + (segmentAngle / 2);
+        text.style.transform = `rotate(${rotationAngle}deg) translate(0, -100px)`;
+
+        wheel.appendChild(text);
+    });
+
+    wheel.style.background = `conic-gradient(${conicGradient.join(', ')})`;
+}
+
 
         function createAndSaveWheel() {
             const wheelName = document.getElementById('wheelName').value.trim();
