@@ -11,12 +11,12 @@ class Wheel {
     }
 
     static fromDB(row) {
-        console.log("Raw DB row:", row); // Logg rådata
+        console.log("Raw DB row:", row); // Log raw data
 
-        let options = row.options || [];  // Sørg for at det er en tom array hvis det er null
-        let settings = row.settings || {}; // Sørg for at det er et tomt objekt hvis det er null
+        let options = row.options || [];  // Ensure it's an empty array if null
+        let settings = row.settings || {}; // Ensure it's an empty object if null
 
-        // Hvis de er strenger, prøv å parse dem
+        // If they are strings, try to parse them
         if (typeof options === 'string') {
             try {
                 options = JSON.parse(options);
@@ -35,11 +35,12 @@ class Wheel {
             }
         }
 
+        // Ensure we return a valid Wheel object even if some fields are missing
         return new Wheel(
-            row.id,
-            row.name,
-            options,
-            settings
+            row.id || null,
+            row.name || '',
+            Array.isArray(options) ? options : [],
+            typeof settings === 'object' ? settings : {}
         );
     }
 }
@@ -104,6 +105,40 @@ router.get('/', async (req, res) => {
         res.json(wheels);
     } catch (error) {
         console.error('Error retrieving wheels:', error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// PUT route
+// PUT route for updating wheel details
+router.put("/:id", async (req, res) => {
+    try {
+      const { name, items } = req.body;
+      const result = await pool.query(
+        "UPDATE wheels SET name = $1, items = $2 WHERE id = $3 RETURNING *",
+        [name, JSON.stringify(items), req.params.id]
+      );
+  
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "Wheel not found" });
+      }
+  
+      res.json(result.rows[0]);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+
+// DELETE route
+router.delete('/:id', async (req, res) => {
+    try {
+        const wheelId = req.params.id;
+
+        const result = await pool.query('DELETE FROM wheels WHERE id = $1 RETURNING *', [wheelId]);
+
+        res.json({ message: 'Wheel deleted', deletedWheel: result.rows[0] });
+    } catch (error) {
         res.status(500).json({ error: 'Database error' });
     }
 });

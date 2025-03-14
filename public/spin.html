@@ -39,80 +39,79 @@
         let currentRotation = 0; // Track current rotation
 
         function addPrize() {
-    const prizeInput = document.getElementById('prizeName');
-    const prize = prizeInput.value.trim();
+            const prizeInput = document.getElementById('prizeName');
+            const prize = prizeInput.value.trim();
 
-    if (prize) {
-        currentPrizes.push(prize);
-        prizeInput.value = '';
-        
-        // Add to the visual list
-        const prizeList = document.getElementById('prizeList');
-        const li = document.createElement('li');
-        li.textContent = prize;
-        
-        // Add edit and remove buttons
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Edit';
-        editBtn.style.marginLeft = '10px';
-        editBtn.onclick = () => editPrize(currentPrizes.length - 1);
-        li.appendChild(editBtn);
-        
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = 'Remove';
-        removeBtn.style.marginLeft = '5px';
-        removeBtn.onclick = () => removePrize(currentPrizes.length - 1);
-        li.appendChild(removeBtn);
-        
-        prizeList.appendChild(li);
-        
-        // Update the wheel
-        createWheel();
-    }
-}
+            if (prize) {
+                currentPrizes.push(prize);
+                prizeInput.value = '';
+                updatePrizeList();
+                createWheel();
+            }
+        }
+
+        function updatePrizeList() {
+            const prizeList = document.getElementById('prizeList');
+            prizeList.innerHTML = '';
+
+            currentPrizes.forEach((prize, index) => {
+                const li = document.createElement('li');
+                li.textContent = prize;
+
+                const editBtn = document.createElement('button');
+                editBtn.textContent = 'Edit';
+                editBtn.style.marginLeft = '10px';
+                editBtn.onclick = () => editPrize(index);
+                li.appendChild(editBtn);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Remove';
+                removeBtn.style.marginLeft = '5px';
+                removeBtn.onclick = () => removePrize(index);
+                li.appendChild(removeBtn);
+
+                prizeList.appendChild(li);
+            });
+        }
 
         function createWheel() {
-    console.log("Creating wheel with prizes:", currentPrizes);
-    
-    const wheel = document.getElementById('wheel');
-    wheel.innerHTML = '';
+            console.log("Creating wheel with prizes:", currentPrizes);
 
-    if (currentPrizes.length === 0) {
-        console.log("No prizes to display in wheel");
-        return;
-    }
+            const wheel = document.getElementById('wheel');
+            wheel.innerHTML = '';
 
-    // Calculate segment angles
-    const segmentAngle = 360 / currentPrizes.length;
-    let conicGradient = [];
-    const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8AC249'];
+            if (currentPrizes.length === 0) {
+                console.log("No prizes to display in wheel");
+                return;
+            }
 
-    currentPrizes.forEach((prize, index) => {
-        console.log(`Adding prize to wheel: ${prize} at index ${index}`);
-        
-        const startAngle = index * segmentAngle;
-        const endAngle = startAngle + segmentAngle;
-        const color = colors[index % colors.length];
+            const segmentAngle = 360 / currentPrizes.length;
+            let conicGradient = [];
+            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8AC249'];
 
-        conicGradient.push(`${color} ${startAngle}deg ${endAngle}deg`);
+            currentPrizes.forEach((prize, index) => {
+                console.log(`Adding prize to wheel: ${prize} at index ${index}`);
 
-        // Create text label
-        const text = document.createElement('div');
-        text.className = 'wheel-text';
-        text.textContent = prize;
+                const startAngle = index * segmentAngle;
+                const endAngle = startAngle + segmentAngle;
+                const color = colors[index % colors.length];
 
-        // Position text in middle of segment
-        const rotationAngle = startAngle + (segmentAngle / 2);
-        text.style.transform = `rotate(${rotationAngle}deg) translate(0, -100px)`;
+                conicGradient.push(`${color} ${startAngle}deg ${endAngle}deg`);
 
-        wheel.appendChild(text);
-    });
+                const text = document.createElement('div');
+                text.className = 'wheel-text';
+                text.textContent = prize;
 
-    wheel.style.background = `conic-gradient(${conicGradient.join(', ')})`;
-}
+                const rotationAngle = startAngle + (segmentAngle / 2);
+                text.style.transform = `rotate(${rotationAngle}deg) translate(0, -100px)`;
 
+                wheel.appendChild(text);
+            });
 
-        function createAndSaveWheel() {
+            wheel.style.background = `conic-gradient(${conicGradient.join(', ')})`;
+        }
+
+        async function createAndSaveWheel() {
             const wheelName = document.getElementById('wheelName').value.trim();
             if (!wheelName) {
                 alert('Please enter a wheel name');
@@ -154,20 +153,17 @@
             }
         }
 
-        // Modify your spinWheel function to work with the database
         async function spinWheel() {
             if (currentPrizes.length < 2) {
                 alert('Add at least 2 prizes to spin the wheel');
                 return;
             }
-            
+
             const wheel = document.getElementById('wheel');
             const spinButton = document.getElementById('spinButton');
-            
-            // Disable button during spin
+
             spinButton.disabled = true;
-            
-            // If we have a saved wheel, record the spin in the database
+
             let serverResult = null;
             if (currentWheelId) {
                 try {
@@ -182,55 +178,59 @@
                     console.error('Error recording spin:', error);
                 }
             }
-            
-            // Calculate rotation (at least 5 full spins + random)
+
             const additionalRotation = 1800 + Math.floor(Math.random() * 360);
             const newRotation = currentRotation + additionalRotation;
-            
-            // Apply rotation with easing
+
             wheel.style.transform = `rotate(${newRotation}deg)`;
-            
-            // Re-enable button and show result after animation
+
             setTimeout(() => {
                 spinButton.disabled = false;
                 currentRotation = newRotation;
-                
-                // If we have a server result, use it
+
                 let resultText;
                 if (serverResult) {
                     resultText = serverResult;
                 } else {
-                    // Otherwise calculate locally
                     const normalizedRotation = newRotation % 360;
                     const sectionAngle = 360 / currentPrizes.length;
                     const sectionIndex = Math.floor((360 - normalizedRotation) / sectionAngle) % currentPrizes.length;
                     resultText = currentPrizes[sectionIndex];
                 }
-                
+
                 const result = document.getElementById('result');
                 result.textContent = `You won: ${resultText}!`;
                 result.classList.add('show');
-                
-                // Remove show class after animation
+
                 setTimeout(() => {
                     result.classList.remove('show');
                 }, 3000);
             }, 5000);
         }
 
-        function getRandomColor() {
-            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40', '#8AC249', '#EA526F'];
-            return colors[Math.floor(Math.random() * colors.length)];
+        function editPrize(index) {
+            const newPrize = prompt('Edit prize:', currentPrizes[index]);
+            if (newPrize !== null && newPrize.trim() !== '') {
+                currentPrizes[index] = newPrize.trim();
+                updatePrizeList();
+                createWheel();
+            }
         }
 
-        // Service Worker Registration
+        function removePrize(index) {
+            if (confirm('Are you sure you want to remove this prize?')) {
+                currentPrizes.splice(index, 1);
+                updatePrizeList();
+                createWheel();
+            }
+        }
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
                 .then(reg => console.log('Service Worker registered:', reg))
                 .catch(err => console.log('Service Worker registration failed:', err));
         }
 
-        // Add this to your script section in spin.html
         async function loadWheels() {
             try {
                 const response = await fetch('/api/wheels');
@@ -238,30 +238,27 @@
                     throw new Error('Failed to load wheels');
                 }
                 const wheels = await response.json();
-                
-                // Create a select dropdown
+
                 const wheelSelect = document.createElement('select');
                 wheelSelect.id = 'wheelSelect';
                 wheelSelect.innerHTML = '<option value="">Select a wheel</option>';
-                
+
                 wheels.forEach(wheel => {
                     const option = document.createElement('option');
                     option.value = wheel.id;
                     option.textContent = wheel.name;
                     wheelSelect.appendChild(option);
                 });
-                
-                // Add event listener to load the selected wheel
+
                 wheelSelect.addEventListener('change', (e) => {
                     if (e.target.value) {
                         loadWheel(e.target.value);
                     }
                 });
-                
-                // Add to the DOM
+
                 const formGroup = document.querySelector('.form-group');
                 formGroup.insertBefore(wheelSelect, formGroup.firstChild);
-                
+
             } catch (error) {
                 console.error('Error loading wheels:', error);
                 alert('Failed to load wheels');
@@ -269,70 +266,43 @@
         }
 
         async function loadWheel(id) {
-    try {
-        const response = await fetch(`/api/wheels/${id}`);
-        if (!response.ok) {
-            throw new Error('Failed to load wheel');
-        }
-        const wheel = await response.json();
-        
-        // Update UI with the loaded wheel
-        document.getElementById('wheelName').value = wheel.name;
-        currentPrizes = wheel.options;
-        currentWheelId = wheel.id;
-        
-        // Display the prizes in the list
-        const prizeList = document.getElementById('prizeList');
-        prizeList.innerHTML = '';
-        
-        wheel.options.forEach((prize, index) => {
-            const li = document.createElement('li');
-            li.textContent = prize;
-            
-            // Add edit and remove buttons
-            const editBtn = document.createElement('button');
-            editBtn.textContent = 'Edit';
-            editBtn.style.marginLeft = '10px';
-            editBtn.onclick = () => editPrize(index);
-            li.appendChild(editBtn);
-            
-            const removeBtn = document.createElement('button');
-            removeBtn.textContent = 'Remove';
-            removeBtn.style.marginLeft = '5px';
-            removeBtn.onclick = () => removePrize(index);
-            li.appendChild(removeBtn);
-            
-            prizeList.appendChild(li);
-        });
-        
-        // Create the wheel visualization with the loaded prizes
-        createWheel();
-        
-        console.log("Wheel data loaded:", wheel);
-        console.log("Current prizes array:", currentPrizes);
-        
-    } catch (error) {
-        console.error('Error loading wheel:', error);
-        alert('Failed to load wheel');
-    }
-}
+            try {
+                const response = await fetch(`/api/wheels/${id}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load wheel');
+                }
+                const wheel = await response.json();
 
-        // Call this when the page loads
+                document.getElementById('wheelName').value = wheel.name;
+                currentPrizes = wheel.options;
+                currentWheelId = wheel.id;
+
+                updatePrizeList();
+                createWheel();
+
+                console.log("Wheel data loaded:", wheel);
+                console.log("Current prizes array:", currentPrizes);
+
+            } catch (error) {
+                console.error('Error loading wheel:', error);
+                alert('Failed to load wheel');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', loadWheels);
 
-        // Add these functions to your script section in spin.html
         async function updateWheel() {
             if (!currentWheelId) {
                 alert('Please select a wheel first');
                 return;
             }
-            
+
             const wheelName = document.getElementById('wheelName').value.trim();
             if (!wheelName) {
                 alert('Please enter a wheel name');
                 return;
             }
-            
+
             try {
                 const response = await fetch(`/api/wheels/${currentWheelId}`, {
                     method: 'PUT',
@@ -356,7 +326,7 @@
                 }
 
                 alert('Wheel updated successfully!');
-                loadWheels(); // Refresh the list
+                loadWheels();
             } catch (error) {
                 console.error('Error updating wheel:', error);
                 alert('Failed to update wheel');
@@ -367,22 +337,16 @@
             const newPrize = prompt('Edit prize:', currentPrizes[index]);
             if (newPrize !== null && newPrize.trim() !== '') {
                 currentPrizes[index] = newPrize.trim();
+                updatePrizeList();
                 createWheel();
-                
-                // Update the prize list
-                const prizeList = document.getElementById('prizeList');
-                prizeList.children[index].textContent = newPrize.trim();
             }
         }
 
         function removePrize(index) {
             if (confirm('Are you sure you want to remove this prize?')) {
                 currentPrizes.splice(index, 1);
+                updatePrizeList();
                 createWheel();
-                
-                // Update the prize list
-                const prizeList = document.getElementById('prizeList');
-                prizeList.removeChild(prizeList.children[index]);
             }
         }
     </script>
